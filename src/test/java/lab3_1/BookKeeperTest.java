@@ -109,4 +109,25 @@ public class BookKeeperTest {
                 is(equalTo(productData2)));
     }
 
+    @Test
+    public void testClientDataPassedToInvoice() {
+        ClientData client = new ClientData(Id.generate(), "Pepsi");
+        invoiceRequest = new InvoiceRequest(client);
+        ProductData productData = new ProductData(Id.generate(), new Money(new BigDecimal(1)), "kabanos", ProductType.FOOD, new Date());
+        int quantity = 10;
+        RequestItem requestItem = new RequestItem(productData, quantity, productData.getPrice()
+                                                                                    .multiplyBy(quantity));
+        invoiceRequest.add(requestItem);
+
+        when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(new BigDecimal(1)), "tax"));
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        assertThat(invoice.getClient()
+                          .getName(),
+                is(equalTo(client.getName())));
+        assertThat(invoice.getClient()
+                          .getAggregateId(),
+                is(equalTo(client.getAggregateId())));
+    }
+
 }
