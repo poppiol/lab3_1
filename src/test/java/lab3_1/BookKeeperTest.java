@@ -130,4 +130,13 @@ public class BookKeeperTest {
                 is(equalTo(client.getAggregateId())));
     }
 
+    @Test
+    public void testIfMethodCreateFromInvoiceFactoryIsCalledOnce() {
+        InvoiceFactory factory = mock(InvoiceFactory.class);
+        bookKeeper = new BookKeeper(factory);
+        when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(new BigDecimal(1)), "tax"));
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+        verify(factory, times(1)).create(any());
+    }
+
 }
