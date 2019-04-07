@@ -94,4 +94,23 @@ public class AddProductCommandHandlerTest {
         verify(clientRepository, never()).load(any());
     }
 
+    @Test
+    public void testIfProductIsArchiveClientWillBeCalled() {
+        Reservation reservation = new Reservation(Id.generate(), ReservationStatus.OPENED, new ClientData(), new Date());
+        when(reservationRepository.load(any(Id.class))).thenReturn(reservation);
+
+        Product product = new Product(Id.generate(), new Money(new BigDecimal(5)), "paluszki", ProductType.FOOD);
+        product.markAsRemoved();
+        when(productRepository.load(any(Id.class))).thenReturn(product);
+
+        when(clientRepository.load(any(Id.class))).thenReturn(client);
+
+        Product product2 = new Product(Id.generate(), new Money(new BigDecimal(50)), "pepsi", ProductType.STANDARD);
+        when(suggestionService.suggestEquivalent(any(Product.class), any(Client.class))).thenReturn(product2);
+
+        productHandler.handle(productCommand);
+
+        verify(clientRepository, times(1)).load(any());
+    }
+
 }
