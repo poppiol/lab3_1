@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -54,6 +55,7 @@ public class AddProductCommandHandlerTest {
         systemContext = new SystemContext();
 
         productCommand = new AddProductCommand(new Id("1"), new Id("2"), 10);
+        client = new Client();
 
         Whitebox.setInternalState(productHandler, "reservationRepository", reservationRepository);
         Whitebox.setInternalState(productHandler, "productRepository", productRepository);
@@ -73,7 +75,23 @@ public class AddProductCommandHandlerTest {
         productHandler.handle(productCommand);
         verify(reservationRepository, times(1)).load(any());
         verify(productRepository, times(1)).load(any());
+        verify(reservationRepository, times(1)).save(any());
         assertThat(true, is(equalTo(true)));
+    }
+
+    @Test
+    public void testIfProductIsActiveClientWillNotBeCalled() {
+        Reservation reservation = new Reservation(Id.generate(), ReservationStatus.OPENED, new ClientData(), new Date());
+        when(reservationRepository.load(any(Id.class))).thenReturn(reservation);
+
+        Product product = new Product(Id.generate(), new Money(new BigDecimal(5)), "paluszki", ProductType.FOOD);
+        when(productRepository.load(any(Id.class))).thenReturn(product);
+
+        when(clientRepository.load(any(Id.class))).thenReturn(client);
+
+        productHandler.handle(productCommand);
+
+        verify(clientRepository, never()).load(any());
     }
 
 }
