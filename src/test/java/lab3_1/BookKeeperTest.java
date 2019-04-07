@@ -42,7 +42,7 @@ public class BookKeeperTest {
     }
 
     @Test
-    public void testInvoiceRequestWithOneElementReturnOneElementInvoice() {
+    public void testInvoiceRequestWithOneProductReturnOneProductInvoice() {
         ProductData productData = new ProductData(Id.generate(), new Money(new BigDecimal(1)), "kabanos", ProductType.FOOD, new Date());
         int quantity = 10;
         RequestItem requestItem = new RequestItem(productData, quantity, productData.getPrice()
@@ -59,7 +59,6 @@ public class BookKeeperTest {
                           .get(0)
                           .getProduct(),
                 is(equalTo(productData)));
-
     }
 
     @Test
@@ -79,6 +78,35 @@ public class BookKeeperTest {
         bookKeeper.issuance(invoiceRequest, taxPolicy);
 
         verify(taxPolicy, times(2)).calculateTax(any(ProductType.class), any(Money.class));
+    }
+
+    @Test
+    public void testInvoiceRequestWithTwoProductsReturnTwoProductsInvoice() {
+        ProductData productData = new ProductData(Id.generate(), new Money(new BigDecimal(1)), "kabanos", ProductType.FOOD, new Date());
+        int quantity = 10;
+        RequestItem requestItem = new RequestItem(productData, quantity, productData.getPrice()
+                                                                                    .multiplyBy(quantity));
+        ProductData productData2 = new ProductData(Id.generate(), new Money(new BigDecimal(11)), "waciki", ProductType.STANDARD,
+                new Date());
+        RequestItem requestItem2 = new RequestItem(productData2, quantity - 2, productData.getPrice()
+                                                                                          .multiplyBy(quantity));
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem2);
+
+        when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(new BigDecimal(1)), "tax"));
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        assertThat(invoice.getItems()
+                          .size(),
+                is(equalTo(2)));
+        assertThat(invoice.getItems()
+                          .get(0)
+                          .getProduct(),
+                is(equalTo(productData)));
+        assertThat(invoice.getItems()
+                          .get(1)
+                          .getProduct(),
+                is(equalTo(productData2)));
     }
 
 }
