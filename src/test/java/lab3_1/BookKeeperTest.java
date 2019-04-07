@@ -5,6 +5,8 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
@@ -42,7 +44,9 @@ public class BookKeeperTest {
     @Test
     public void testInvoiceRequestWithOneElementReturnOneElementInvoice() {
         ProductData productData = new ProductData(Id.generate(), new Money(new BigDecimal(1)), "kabanos", ProductType.FOOD, new Date());
-        RequestItem requestItem = new RequestItem(productData, 1, productData.getPrice());
+        int quantity = 10;
+        RequestItem requestItem = new RequestItem(productData, quantity, productData.getPrice()
+                                                                                    .multiplyBy(quantity));
         invoiceRequest.add(requestItem);
 
         when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(new BigDecimal(1)), "tax"));
@@ -56,6 +60,25 @@ public class BookKeeperTest {
                           .getProduct(),
                 is(equalTo(productData)));
 
+    }
+
+    @Test
+    public void testNumberOfCallsTaxCalculateForInvoiceRequestWithTwoProducts() {
+        ProductData productData = new ProductData(Id.generate(), new Money(new BigDecimal(1)), "kabanos", ProductType.FOOD, new Date());
+        int quantity = 10;
+        RequestItem requestItem = new RequestItem(productData, quantity, productData.getPrice()
+                                                                                    .multiplyBy(quantity));
+        ProductData productData2 = new ProductData(Id.generate(), new Money(new BigDecimal(11)), "waciki", ProductType.STANDARD,
+                new Date());
+        RequestItem requestItem2 = new RequestItem(productData2, quantity - 2, productData.getPrice()
+                                                                                          .multiplyBy(quantity));
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem2);
+
+        when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(new BigDecimal(1)), "tax"));
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        verify(taxPolicy, times(2)).calculateTax(any(ProductType.class), any(Money.class));
     }
 
 }
