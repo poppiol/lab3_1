@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -131,12 +132,20 @@ public class BookKeeperTest {
     }
 
     @Test
-    public void testIfMethodCreateFromInvoiceFactoryIsCalledOnce() {
+    public void testIfMethodCreateFromInvoiceFactoryWasCalledOnce() {
         InvoiceFactory factory = mock(InvoiceFactory.class);
         bookKeeper = new BookKeeper(factory);
         when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(new BigDecimal(1)), "tax"));
         bookKeeper.issuance(invoiceRequest, taxPolicy);
         verify(factory, times(1)).create(any());
+    }
+
+    @Test
+    public void testIfTaxCalculateNeverWasCalledForEmptyInvoiceRequest() {
+        when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(new BigDecimal(1)), "tax"));
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        verify(taxPolicy, never()).calculateTax(any(ProductType.class), any(Money.class));
     }
 
 }
