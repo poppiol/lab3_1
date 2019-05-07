@@ -85,7 +85,7 @@ public class BookKeeperTest {
     }
 
     @Test
-    public void invoiceRequestWithTwoPositionShouldReturnCallingTwice() {
+    public void invoiceRequestWithTwoPositionShouldReturnCallingCalculateTaxMethodTwice() {
         Money money = new Money(1);
 
         ProductData productData = mock(ProductData.class);
@@ -104,7 +104,7 @@ public class BookKeeperTest {
     }
 
     @Test
-    public void invoiceRequestWithTwoPositionShouldReturnCallingZero() {
+    public void invoiceRequestWithZeroPositionShouldReturnCallingCalculateTaxMethodZero() {
         Money money = new Money(1);
 
         ProductData productData = mock(ProductData.class);
@@ -117,6 +117,30 @@ public class BookKeeperTest {
 
         verify(taxPolicy, times(0)).calculateTax(productData.getType(), money);
     }
+
+    @Test
+    public void invoiceRequestWithTwoPositionShouldReturnCallingGetTotalCostMethodTwice() {
+        Money money = new Money(1);
+
+        ProductData productData = mock(ProductData.class);
+        when(productData.getType()).thenReturn(ProductType.FOOD);
+
+        TaxPolicy taxPolicy = mock(TaxPolicy.class);
+        when(taxPolicy.calculateTax(productData.getType(), money)).thenReturn(new Tax(money, "description"));
+
+        RequestItem requestItem = mock(RequestItem.class);
+        when(requestItem.getTotalCost()).thenReturn(money);
+        when(requestItem.getProductData()).thenReturn(productData);
+        when(requestItem.getQuantity()).thenReturn(1);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        verify(requestItem, times(2)).getTotalCost();
+    }
+
+
 
 
 }
