@@ -4,7 +4,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
@@ -48,7 +47,7 @@ public class BookKeeperTest {
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
 
-        Assert.assertThat("should return 1",invoice.getItems().size(), is(equalTo(1)));
+        Assert.assertThat("should return 1", invoice.getItems().size(), is(equalTo(1)));
     }
 
     @Test
@@ -63,7 +62,26 @@ public class BookKeeperTest {
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
 
-        Assert.assertThat("should return 0",invoice.getItems().size(), is(equalTo(0)));
+        Assert.assertThat("should return 0", invoice.getItems().size(), is(equalTo(0)));
+    }
+
+
+    @Test
+    public void invoiceRequestWithOnePositionShouldReturnInformationAboutMoneyInInvoice() {
+        Money money = new Money(1);
+
+        ProductData productData = mock(ProductData.class);
+        when(productData.getType()).thenReturn(ProductType.FOOD);
+
+        TaxPolicy taxPolicy = mock(TaxPolicy.class);
+        when(taxPolicy.calculateTax(productData.getType(), money)).thenReturn(new Tax(money, "description"));
+
+        RequestItem requestItem = new RequestItem(productData, 1, money);
+        invoiceRequest.add(requestItem);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        Assert.assertThat("should return " + money, invoice.getItems().get(0).getNet(), is(equalTo(money)));
     }
 
     @Test
