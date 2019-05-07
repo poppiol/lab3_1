@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
@@ -49,4 +50,25 @@ public class BookKeeperTest {
 
         Assert.assertThat(invoice.getItems().size(), is(equalTo(1)));
     }
+
+    @Test
+    public void invoiceRequestWithTwoPositionShouldReturnInvoiceWithTwoPosition() {
+        Money money = new Money(1);
+
+        ProductData productData = mock(ProductData.class);
+        when(productData.getType()).thenReturn(ProductType.FOOD);
+
+        TaxPolicy taxPolicy = mock(TaxPolicy.class);
+        when(taxPolicy.calculateTax(productData.getType(), money)).thenReturn(new Tax(money, "description"));
+
+        RequestItem requestItem = new RequestItem(productData, 1, money);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        verify(taxPolicy, times(2)).calculateTax(productData.getType(), money);
+    }
+
+
 }
