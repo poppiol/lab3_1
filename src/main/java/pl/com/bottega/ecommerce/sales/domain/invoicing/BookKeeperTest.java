@@ -21,9 +21,9 @@ import static org.mockito.Mockito.*;
 public class BookKeeperTest {
 
 
-    BookKeeper bookKeeper;
-    ClientData clientData;
-    InvoiceRequest invoiceRequest;
+    private BookKeeper bookKeeper;
+    private ClientData clientData;
+    private InvoiceRequest invoiceRequest;
 
     @Before
     public void init() {
@@ -48,7 +48,22 @@ public class BookKeeperTest {
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
 
-        Assert.assertThat(invoice.getItems().size(), is(equalTo(1)));
+        Assert.assertThat("should return 1",invoice.getItems().size(), is(equalTo(1)));
+    }
+
+    @Test
+    public void invoiceRequestWithZeroPositionShouldReturnInvoiceWithZeroPosition() {
+        Money money = new Money(1);
+
+        ProductData productData = mock(ProductData.class);
+        when(productData.getType()).thenReturn(ProductType.FOOD);
+
+        TaxPolicy taxPolicy = mock(TaxPolicy.class);
+        when(taxPolicy.calculateTax(productData.getType(), money)).thenReturn(new Tax(money, "description"));
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        Assert.assertThat("should return 0",invoice.getItems().size(), is(equalTo(0)));
     }
 
     @Test
