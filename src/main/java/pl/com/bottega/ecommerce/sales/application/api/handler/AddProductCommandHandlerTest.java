@@ -64,4 +64,13 @@ public class AddProductCommandHandlerTest {
         verify(reservation, Mockito.times(2)).add(product, addProductCommand.getQuantity());
     }
 
+    @Test
+    public void handleReservationRespositoryShouldCallingHisMethodsTwoTimes() {
+        addProductCommand = new AddProductCommand(new Id("1"), new Id("1"), 20);
+        addProductCommandHandler.handle(addProductCommand);
+        addProductCommandHandler.handle(addProductCommand);
+
+        verify(reservationRepository, Mockito.times(2)).load(addProductCommand.getOrderId());
+        verify(reservationRepository, Mockito.times(2)).save(reservation);
+    }
 }
