@@ -39,7 +39,7 @@ public class AddProductCommandHandlerTest {
         when(product.isAvailable()).thenReturn(true);
         when(reservationRepository.load(any())).thenReturn(reservation);
         when(productRepository.load(any())).thenReturn(product);
-
+        addProductCommand = new AddProductCommand(new Id("1"), new Id("1"), 20);
         addProductCommandHandler = new AddProductCommandHandler(reservationRepository, productRepository, suggestionService, clientRepository, systemContext);
     }
 
@@ -57,7 +57,6 @@ public class AddProductCommandHandlerTest {
 
     @Test
     public void handleReservationShouldCallingAddMethodTwoTimes() {
-        addProductCommand = new AddProductCommand(new Id("1"), new Id("1"), 20);
         addProductCommandHandler.handle(addProductCommand);
         addProductCommandHandler.handle(addProductCommand);
 
@@ -66,7 +65,6 @@ public class AddProductCommandHandlerTest {
 
     @Test
     public void handleReservationRespositoryShouldCallingHisMethodsTwoTimes() {
-        addProductCommand = new AddProductCommand(new Id("1"), new Id("1"), 20);
         addProductCommandHandler.handle(addProductCommand);
         addProductCommandHandler.handle(addProductCommand);
 
